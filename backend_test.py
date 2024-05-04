@@ -50,8 +50,26 @@ def computeWinRate (data:list):
                 
     return winningGames / totalGames
 
-
+def computeMDD (data:list, cost:float):
+    netValue = cost
+    MaxValue = netValue
+    MDD      = 0.0 
+    
+    for trade in data:
+        netValue += trade['fillPnl'] + trade['fee']
+        MaxValue = max(MaxValue, netValue)
+        MDD      = max(MDD, (MaxValue - netValue) / MaxValue)   
         
+    return MDD
+
+def computeOddsRatio (data:list, cost:float):
+    pass
+
+def computeProfitFactor (data:list, cost:float):
+    pass
+
+def computeSharpeRatio (data:list, cost:float):
+    pass   
         
 if __name__ == '__main__':
     code, msg, data = loadData('trades.json')
@@ -62,9 +80,11 @@ if __name__ == '__main__':
 
     ROI     = computeROI(data, cost)
     winrate = computeWinRate(data)
+    MDD     = computeMDD(data, cost)
     
     printFn('ROI', ROI)
     printFn('winrate', winrate)
+    printFn('MDD', MDD)
 
 
 
