@@ -10,15 +10,6 @@ def preprocess(data):
         i['fillMarkPx'] = float(i['fillMarkPx'])
     return data
 
-def computeROI (data:list, cost:float):
-    netProfit = 0
-    
-    for trade in data:
-        netProfit += trade['fee']
-        netProfit += trade['fillPnl']
-
-    return netProfit / cost * 100
-
 def loadData(path:str):
     with open(path) as json_file: 
         rawData = json.load(json_file)
@@ -27,7 +18,39 @@ def loadData(path:str):
         msg  = rawData["msg"]
         data = rawData["data"]
     return code, msg, data
-        
+
+def printFn(name, value:float, percentage = True):
+    if percentage:
+        value = value * 100.0
+        print(f'{name:<10}: {value:.2f}%')    
+    else:
+        print(f'{name}: {value:.2f}')    
+
+
+
+
+def computeROI (data:list, cost:float):
+    netProfit = 0
+    
+    for trade in data:
+        netProfit += trade['fee']
+        netProfit += trade['fillPnl']
+
+    return netProfit / cost 
+
+def computeWinRate (data:list):
+    totalGames = 0.0
+    winningGames = 0.0
+
+    for trade in data:
+        if trade['fillPnl'] != 0:
+            totalGames += 1
+            if trade['fillPnl'] > 0:
+                winningGames += 1
+                
+    return winningGames / totalGames
+
+
         
         
 if __name__ == '__main__':
@@ -36,9 +59,13 @@ if __name__ == '__main__':
     cost = 8000
     data = preprocess(data)
 
-    ROI = computeROI(data, cost)
+
+    ROI     = computeROI(data, cost)
+    winrate = computeWinRate(data)
     
-    print('ROI:', f'{ROI}%')    
+    printFn('ROI', ROI)
+    printFn('winrate', winrate)
+
 
 
 
