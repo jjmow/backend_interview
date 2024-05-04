@@ -22,9 +22,9 @@ def loadData(path:str):
 def printFn(name, value:float, percentage = True):
     if percentage:
         value = value * 100.0
-        print(f'{name:<10}: {value:.2f}%')    
+        print(f'{name:<15}: {value:.2f}%')    
     else:
-        print(f'{name}: {value:.2f}')    
+        print(f'{name:<15}: {value:.2f}')    
 
 
 
@@ -60,13 +60,25 @@ def computeMDD (data:list, cost:float):
         MaxValue = max(MaxValue, netValue)
         MDD      = max(MDD, (MaxValue - netValue) / MaxValue)   
         
-    return MDD
+    return MDD 
 
 def computeOddsRatio (data:list, cost:float):
     pass
 
-def computeProfitFactor (data:list, cost:float):
-    pass
+def computeProfitFactor (data:list):
+    grossProfit = 0.0
+    grossLoss = 0.0
+    
+    for trade in data:
+        gross = trade['fillPnl']
+        
+
+        if gross > 0:
+            grossProfit += gross
+        else:
+            grossLoss -= gross
+            
+    return grossProfit / grossLoss
 
 def computeSharpeRatio (data:list, cost:float):
     pass   
@@ -82,9 +94,13 @@ if __name__ == '__main__':
     winrate = computeWinRate(data)
     MDD     = computeMDD(data, cost)
     
+    ProfitFactor = computeProfitFactor(data)
+    
     printFn('ROI', ROI)
     printFn('winrate', winrate)
     printFn('MDD', MDD)
+    printFn('Profit Factor', ProfitFactor, False)
+
 
 
 
