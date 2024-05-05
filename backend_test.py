@@ -1,4 +1,6 @@
 import json
+import statistics
+import math
 
 def preprocess(data):
     for i in data:
@@ -19,13 +21,19 @@ def loadData(path:str):
         data = rawData["data"]
     return code, msg, data
 
-def printFn(name, value:float, percentage = True):
-    if percentage:
-        value = value * 100.0
-        print(f'{name:<15}: {value:.2f}%')    
+def printFn(name, value:float, percentage = True, showAllDigits = False):
+    if not showAllDigits:
+        if percentage:
+            value = value * 100.0
+            print(f'{name:<15}: {value:.2f}%')    
+        else:
+            print(f'{name:<15}: {value:.2f}')    
     else:
-        print(f'{name:<15}: {value:.2f}')    
-
+        if percentage:
+            value = value * 100.0
+            print(f'{name:<15}: {value}%')    
+        else:
+            print(f'{name:<15}: {value}')    
 
 
 
@@ -68,6 +76,7 @@ def computeOddsRatio (data:list, cost:float):
 def computeProfitFactor (data:list):
     grossProfit = 0.0
     grossLoss = 0.0
+    # I didn't consider fee in this case, because I think ProfitFactor only focus on the performance of your strategy.
     
     for trade in data:
         gross = trade['fillPnl']
@@ -80,14 +89,32 @@ def computeProfitFactor (data:list):
             
     return grossProfit / grossLoss
 
-def computeSharpeRatio (data:list, cost:float):
-    pass   
+def computeSharpeRatio (data:list, cost:float, riskFreeRate:float):
+    ROI = computeROI(data, cost)
+    
+    prices_ETH = list(map(
+        lambda x:x['fillPx'],
+        [ETH for ETH in data if ETH['instId'] == "ETH-USDT-SWAP"])
+    )
+    
+    prices_BTC = list(map(
+        lambda x:x['fillPx'],
+        [ETH for ETH in data if ETH['instId'] == "BTC-USDT-SWAP"])
+    )
+    
+    STD_ETH = statistics.stdev(prices_ETH)
+    STD_BTC = statistics.stdev(prices_BTC)
+    
+    STD = math.sqrt(STD_ETH * STD_BTC) 
+    
+    return (ROI - riskFreeRate) / STD
         
 if __name__ == '__main__':
     code, msg, data = loadData('trades.json')
     
     cost = 8000
     data = preprocess(data)
+    riskFreeRate = 0.02
 
 
     ROI     = computeROI(data, cost)
@@ -95,11 +122,14 @@ if __name__ == '__main__':
     MDD     = computeMDD(data, cost)
     
     ProfitFactor = computeProfitFactor(data)
+    sharpRatio   = computeSharpeRatio(data, cost, riskFreeRate)
     
     printFn('ROI', ROI)
     printFn('winrate', winrate)
     printFn('MDD', MDD)
+    
     printFn('Profit Factor', ProfitFactor, False)
+    printFn('Sharp Ratio', sharpRatio, False, True)
 
 
 
